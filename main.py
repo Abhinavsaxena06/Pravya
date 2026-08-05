@@ -1,17 +1,26 @@
+import pygame
+
 from environment.venue import Venue
+from environment.object import VenueObject
 
 from agents.crowd_generator import CrowdGenerator
 
 from movement.movement import MovementEngine
+
 from analyzer.density import DensityAnalyzer
 from analyzer.flow import FlowAnalyzer
-from scenarios.scenarios import ScenarioEngine
 from analyzer.safety_score import SafetyScore
 from analyzer.recommendation import RecommendationEngine
 
+from scenarios.scenarios import ScenarioEngine
+
+from visualization.simulator import Simulator
 
 
+
+# ==============================
 # Create Venue
+# ==============================
 
 venue = Venue(
     100,
@@ -32,21 +41,59 @@ venue.add_exit(
 
 
 
+# ==============================
+# Create Infrastructure
+# ==============================
+
+stage = VenueObject(
+    "Stage",
+    50,
+    50,
+    10,
+    10
+)
+
+
+medical = VenueObject(
+    "Medical Station",
+    20,
+    70,
+    8,
+    8
+)
+
+
+food = VenueObject(
+    "Food Court",
+    70,
+    40,
+    15,
+    10
+)
+
+
+
+venue.add_object(stage)
+venue.add_object(medical)
+venue.add_object(food)
+
+
+
+# ==============================
 # Generate Crowd
+# ==============================
 
 generator = CrowdGenerator()
 
 
 crowd = generator.generate_crowd(
-    number_of_people=600,
+    number_of_people=200,
     entry_point=(10,0)
 )
 
 
 
-print(
-    "Before Movement"
-)
+print("Before Movement")
 
 
 for person in crowd:
@@ -58,13 +105,13 @@ for person in crowd:
 
 
 
+# ==============================
 # Movement Engine
+# ==============================
 
 movement = MovementEngine()
 
 
-
-# Assign stage as destination
 
 for person in crowd:
 
@@ -74,8 +121,6 @@ for person in crowd:
     )
 
 
-
-# Move crowd
 
 movement.move_crowd(
     crowd
@@ -92,11 +137,14 @@ for person in crowd:
         person.person_id,
         person.get_position()
     )
-# Crowd Density Analysis
 
+
+
+# ==============================
+# Density Analysis
+# ==============================
 
 density_analyzer = DensityAnalyzer()
-
 
 
 density = density_analyzer.calculate_density(
@@ -105,14 +153,13 @@ density = density_analyzer.calculate_density(
 )
 
 
-
 risk = density_analyzer.get_risk_level(
     density
 )
 
 
-
 print("\nCrowd Analysis")
+
 
 print(
     "People:",
@@ -131,11 +178,14 @@ print(
     "Risk:",
     risk
 )
-# Crowd Flow Analysis
 
+
+
+# ==============================
+# Flow Analysis
+# ==============================
 
 flow_analyzer = FlowAnalyzer()
-
 
 
 average_speed = flow_analyzer.calculate_average_speed(
@@ -143,11 +193,9 @@ average_speed = flow_analyzer.calculate_average_speed(
 )
 
 
-
 stopped_ratio = flow_analyzer.stopped_people_ratio(
     crowd
 )
-
 
 
 flow_risk = flow_analyzer.movement_risk(
@@ -159,12 +207,11 @@ flow_risk = flow_analyzer.movement_risk(
 
 print("\nFlow Analysis")
 
+
 print(
     "Average Speed:",
-    average_speed,
-    "m/s"
+    average_speed
 )
-
 
 
 print(
@@ -173,23 +220,21 @@ print(
 )
 
 
-
 print(
     "Movement Risk:",
     flow_risk
-)   
-# Scenario Simulation
+)
 
+
+
+# ==============================
+# Scenario Testing
+# ==============================
 
 scenario = ScenarioEngine(
     crowd,
     venue
 )
-
-
-
-# Test 1:
-# Crowd increase
 
 
 extra_people = scenario.increase_crowd(
@@ -198,47 +243,25 @@ extra_people = scenario.increase_crowd(
 
 
 print(
-    "\nScenario: Attendance +50%"
-)
-
-
-print(
-    "Additional Visitors:",
+    "\nAdditional Visitors:",
     extra_people
 )
 
 
-
-# Test 2:
-# Gate closure
-
-
-gate_result = scenario.close_gate(
-    "Gate A"
+print(
+    scenario.close_gate("Gate A")
 )
 
 
 print(
-    gate_result
+    scenario.weather_change("Heavy Rain")
 )
 
 
 
-# Test 3:
-# Weather
-
-
-weather_result = scenario.weather_change(
-    "Heavy Rain"
-)
-
-
-print(
-    weather_result
-)
-
-# Final Safety Evaluation
-
+# ==============================
+# Safety Evaluation
+# ==============================
 
 safety = SafetyScore()
 
@@ -274,8 +297,9 @@ print(
 
 
 
+# ==============================
 # Recommendations
-
+# ==============================
 
 recommendation = RecommendationEngine()
 
@@ -286,10 +310,75 @@ actions = recommendation.generate(
 )
 
 
-
 print("\nAI Recommendations:")
 
 
 for action in actions:
 
     print("-", action)
+
+
+
+# ==============================
+# Visualization
+# ==============================
+
+simulator = Simulator()
+
+
+
+running = True
+
+
+
+while running:
+
+
+    for event in pygame.event.get():
+
+        if event.type == pygame.QUIT:
+
+            running = False
+
+
+
+    simulator.clear()
+
+
+
+    # Draw infrastructure
+
+    for obj in venue.objects:
+
+        simulator.draw_object(
+            obj
+        )
+
+
+
+    # Update movement
+
+    movement.move_crowd(
+        crowd
+    )
+
+
+
+    # Draw people
+
+    for person in crowd:
+
+        simulator.draw_person(
+            person
+        )
+
+
+
+    simulator.update()
+
+
+    simulator.clock.tick(60)
+
+
+
+simulator.close()

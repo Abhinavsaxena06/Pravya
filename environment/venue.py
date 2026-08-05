@@ -1,41 +1,49 @@
 class Venue:
 
 
-    def __init__(self, width, height):
+    def __init__(
+            self,
+            width,
+            height
+    ):
 
         self.width = width
         self.height = height
 
         self.entries = []
         self.exits = []
-        self.obstacles = []
+
+        self.objects = []
 
 
-    def add_entry(self, x, y):
 
-        self.entries.append((x,y))
+    def add_entry(
+            self,
+            x,
+            y
+    ):
 
-
-    def add_exit(self, x, y):
-
-        self.exits.append((x,y))
-
-
-    def add_obstacle(self, obstacle):
-
-        self.obstacles.append(obstacle)
-
-
-    def show_details(self):
-
-        print("Venue Size:")
-        print(
-            self.width,
-            "x",
-            self.height
+        self.entries.append(
+            (x,y)
         )
 
 
-        print("Entries:", self.entries)
 
-        print("Exits:", self.exits)
+    def add_exit(
+            self,
+            x,
+            y
+    ):
+
+        self.exits.append(
+            (x,y)
+        )
+
+
+
+    def add_object(
+            self,
+            obj
+    ):
+
+        self.objects.append(obj)
